@@ -14,20 +14,6 @@ That worker is the **CPU** (the Central Processing Unit — the brain chip insid
 
 The list of tiny actions you hand the worker is called **assembly language**. This course teaches you how to write that list.
 
-## Why learn assembly in 2026?
-
-Be honest: you will (almost) never *write* assembly to ship a real product. So why bother?
-
-Because you will often need to **read** it. Here are the moments where knowing assembly suddenly matters:
-
-- A **profiler** (a tool that measures which parts of a program are slow) points at a tiny chunk of assembly code and says "this is your bottleneck." You need to understand what it's showing you.
-- A bug only shows up when the program is built in "release mode" (the optimized version), and the original code you wrote no longer matches what's actually running on the CPU.
-- A program crashes and there are no helpful labels left — just raw machine instructions.
-- You want to know what mysterious programming words like `volatile`, `restrict`, atomics, or SIMD intrinsics *actually* do down at the metal.
-- You're learning how compilers, operating systems, security, or embedded chips work.
-
-The real payoff isn't "I can write assembly now." The real payoff is **demystification** — losing the feeling that computers are magic. Once you know what registers, the stack, calling conventions, and addressing modes are (don't worry, we'll explain all of these), every higher-level programming language stops feeling like sorcery and starts feeling like a tool.
-
 ## The mental model, in one picture
 
 Here is the picture to keep in your head for this whole course:
