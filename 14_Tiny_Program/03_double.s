@@ -1,25 +1,30 @@
 .intel_syntax noprefix
 
-# A tiny program: read a non-negative integer from stdin, double it,
-# print it followed by a newline, exit 0.
+# Topic 03 — Capstone: double
 #
-# No libc; only the Linux syscalls read(0,..), write(1,..), exit.
+# Read a non-negative integer from stdin, double it, print the result
+# followed by '\n', exit 0. With no input we just exit 0 silently.
+#
+# Build:
+#   as -o 03_double.o 03_double.s && ld -o 03_double 03_double.o
+# Run:
+#   echo 21 | ./03_double          # => 42
+#   echo 1234567890 | ./03_double  # => 2469135780
+#   ./03_double </dev/null         # (no output, exit 0)
 
         .bss
-inbuf:  .skip   32              # input buffer
-outbuf: .skip   32              # output buffer (we fill from the end)
+inbuf:  .skip   32
+outbuf: .skip   32
 
         .text
         .globl  _start
 
 # --------------------------------------------------------------------
 # parse_uint(buf in rdi, len in rsi) -> rax
-#   Parses up to `len` decimal digits from buf, stops at the first
-#   non-digit (e.g., '\n'). Returns the value in rax.
 # --------------------------------------------------------------------
 parse_uint:
-        xor     rax, rax                # accumulator = 0
-        xor     rcx, rcx                # index = 0
+        xor     rax, rax
+        xor     rcx, rcx
 .pu_loop:
         cmp     rcx, rsi
         jge     .pu_done
@@ -28,7 +33,7 @@ parse_uint:
         jl      .pu_done
         cmp     rdx, '9'
         jg      .pu_done
-        sub     rdx, '0'                # digit value
+        sub     rdx, '0'
         imul    rax, rax, 10
         add     rax, rdx
         inc     rcx
@@ -37,31 +42,27 @@ parse_uint:
         ret
 
 # --------------------------------------------------------------------
-# write_uint(value in rdi) -> nothing
-#   Writes `value` as decimal ASCII + '\n' to stdout.
-#   Fills outbuf from the tail backwards.
+# write_uint(value in rdi)
 # --------------------------------------------------------------------
 write_uint:
         mov     rax, rdi
-        lea     rsi, [rip + outbuf + 32]        # one past end of buffer
+        lea     rsi, [rip + outbuf + 32]
         mov     byte ptr [rsi - 1], '\n'
-        dec     rsi                              # rsi -> the '\n'
+        dec     rsi
         mov     rcx, 10
 .wu_div:
         xor     rdx, rdx
-        div     rcx                              # rax = q, rdx = r
+        div     rcx
         add     dl, '0'
         dec     rsi
         mov     [rsi], dl
         test    rax, rax
         jnz     .wu_div
 
-        # write(1, rsi, end - rsi)
         lea     rdx, [rip + outbuf + 32]
-        sub     rdx, rsi                         # length including '\n'
-        mov     rdi, 1                           # stdout
-        mov     rax, 1                           # write
-        # rsi already points to first digit
+        sub     rdx, rsi
+        mov     rdi, 1
+        mov     rax, 1
         syscall
         ret
 
@@ -76,12 +77,12 @@ _start:
         mov     rdx, 32
         syscall
 
-        # if (n <= 0) exit(1)
+        # No input at all? Just exit 0 cleanly.
         test    rax, rax
-        jle     .err
+        jle     .done
 
         # value = parse_uint(inbuf, n)
-        mov     rsi, rax                         # len
+        mov     rsi, rax
         lea     rdi, [rip + inbuf]
         call    parse_uint
 
@@ -90,12 +91,7 @@ _start:
         mov     rdi, rax
         call    write_uint
 
-        # exit(0)
+.done:
         xor     rdi, rdi
-        mov     rax, 60
-        syscall
-
-.err:
-        mov     rdi, 1
         mov     rax, 60
         syscall
